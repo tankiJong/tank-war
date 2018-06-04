@@ -31,7 +31,6 @@ App::App() {
   g_theUiCamera->setColorTarget(g_theRenderer->getDefaultColorTarget());
 
   m_game = new Game();
-  g_theGame = m_game;
 }
 
 App::~App() {
@@ -45,7 +44,6 @@ App::~App() {
     
 	delete m_game;
   m_game = nullptr;
-  g_theGame = nullptr;
 
   delete g_theUiCamera;
   g_theUiCamera = nullptr;

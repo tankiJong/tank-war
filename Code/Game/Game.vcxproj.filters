@@ -16,21 +16,27 @@
     <ClCompile Include="App.cpp">
       <Filter>General</Filter>
     </ClCompile>
-    <ClCompile Include="Game.cpp">
-      <Filter>General</Filter>
-    </ClCompile>
     <ClCompile Include="GameCommon.cpp">
       <Filter>General</Filter>
     </ClCompile>
     <ClCompile Include="Gameplay\Entity.cpp">
       <Filter>General\Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="Gameplay\Map.cpp">
+      <Filter>General\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="Gameplay\Player.cpp">
+      <Filter>General\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="Level.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Game.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp">
-      <Filter>General</Filter>
-    </ClInclude>
-    <ClInclude Include="Game.hpp">
       <Filter>General</Filter>
     </ClInclude>
     <ClInclude Include="GameCommon.hpp">
@@ -41,6 +47,18 @@
     </ClInclude>
     <ClInclude Include="Gameplay\Entity.hpp">
       <Filter>General\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\Map.hpp">
+      <Filter>General\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\Player.hpp">
+      <Filter>General\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Level.hpp">
+      <Filter>General</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.hpp">
+      <Filter>General</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
