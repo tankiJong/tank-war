@@ -12,22 +12,14 @@ enum eGameState {
 
 
 struct SceenWord {
-  Renderable text;
-  Renderable background;
-
+public:
   void init(std::string_view txt, const Rgba& color);
 
-  void regScene(RenderScene& scene) {
-    scene.add(background);
-    scene.add(text);
+  inline void render() const {
+    func();
   }
-
-  void unregScene(RenderScene& scene) {
-    scene.remove(text);
-    scene.remove(background);
-  }
-
 protected:
+  std::function<void()> func;
   Transform transform;
 };
 
@@ -47,6 +39,5 @@ public:
 protected:
   void switchState(eGameState to);
   Level* mLevel = nullptr;
-  RenderScene* mRenderScene = nullptr;
   SceenWord mUis[NUM_STATES];
 };

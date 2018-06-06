@@ -11,6 +11,7 @@
 #include "Engine/Renderer/ForwardRendering.hpp"
 #include "Engine/Renderer/Shader/Shader.hpp"
 #include "Engine/Renderer/Shader/Material.hpp"
+#include "Engine/Renderer/Renderer.hpp"
 Transform uiTransform;
 Game::Game() {
   Debug::setRenderer(g_theRenderer);
@@ -22,9 +23,6 @@ Game::Game() {
   mUis[STATE_LOADING].init("loading assets"sv, Rgba::cyan);
   mUis[STATE_MAIN_MENU].init("Hit SPACE to start"sv, Rgba::black);
   mUis[STATE_READY_UP].init("Hit Enter when you are ready"sv, Rgba::green);
-  mRenderScene = new RenderScene();
-  mRenderScene->add(*g_theUiCamera);
-  mUis[state].regScene(*mRenderScene);
 }
 
 void Game::beforeFrame() {
@@ -40,8 +38,7 @@ void Game::render() const {
     mLevel->render();
     return;
   }
-  ForwardRendering fw(g_theRenderer);
-  fw.render(*mRenderScene);
+  mUis[state].render();
 }
 
 void Game::loadResources() const {
@@ -70,7 +67,7 @@ void Game::update(float dSecond) {
   static bool justSwitch = false;
   switch(state) {
     case STATE_LOADING: {
-      if(GetMainClock().total.second > 3.0) {
+      if(GetMainClock().total.second > 5.0) {
         switchState(STATE_MAIN_MENU);
       }
     }; break;
@@ -108,32 +105,18 @@ void Game::processInput(float dSecond) {
 }
 
 void Game::switchState(eGameState to) {
-  mUis[state].unregScene(*mRenderScene);
   state = to;
-  mUis[state].regScene(*mRenderScene);
 }
 
 void SceenWord::init(std::string_view txt, const Rgba& color) {
-  text.transform()       = &transform;
-  background.transform() = &transform;
+  func = [txt, color]() {
+    vec2 screen = (vec2)Window::Get()->bounds().size();
+    vec2   span = (screen - vec2{ Font::Default()->advance(txt, 20.f), Font::Default()->lineHeight(20.f) }) / 2.f;
 
-  text.material(Resource<Material>::get("material/ui/font"));
-  text.material()->setTexture(TEXTURE_DIFFUSE, Font::Default()->texture());
-  background.material(Resource<Material>::get("material/ui/default"));
-
-  Mesher ms;
-  vec2   screen = (vec2)Window::Get()->bounds().size();
-  vec2   span   = (screen - vec2{Font::Default()->advance(txt, 20.f), Font::Default()->lineHeight(20.f)}) / 2.f;
-  ms.begin(DRAW_TRIANGES)
-    .text(txt, 20.f, Font::Default().get(), vec3{span, 0})
-    .end();
-  text.mesh() = ms.createMesh<>();
-
-  ms.clear();
-
-  ms.begin(DRAW_TRIANGES)
-    .color(color)
-    .quad2({vec2::zero, screen}, 1.f)
-    .end();
-  background.mesh() = ms.createMesh<>();
+    g_theRenderer->setCamera(g_theUiCamera);
+    g_theRenderer->disableDepth();
+    g_theRenderer->setTexture();
+    g_theRenderer->drawAABB2({ vec2::zero, screen }, color);
+    g_theRenderer->drawText2(txt, 20.f, Font::Default().get(), vec3{ span, 0 });
+  };
 }

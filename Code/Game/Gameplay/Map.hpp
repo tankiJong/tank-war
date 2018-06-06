@@ -13,8 +13,8 @@ public:
   uint indexOf(uint x, uint y, uint offsetX, uint offsetY);
   float height(vec2 pos);
 protected:
-  static constexpr uint countx = 20.f;
-  static constexpr uint county = 20.f;
+  static constexpr uint countx = 20u;
+  static constexpr uint county = 20u;
   static constexpr float rx = 256.f / float(countx);
   static constexpr float ry = 256.f / float(county);
 

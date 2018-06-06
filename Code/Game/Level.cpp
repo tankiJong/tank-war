@@ -32,11 +32,11 @@ Level::Level() {
   mCamera->transfrom().parent() = &mPlayer.transform;
   mMap.init();
 
-  mSun.transform.setlocalTransform(mat44::lookAt(vec3{-10.f ,10.f, -10.f}, vec3::zero).inverse());
-  Debug::drawCone(mSun.transform.position(), mSun.transform.forward(), 2.f, 10.f, 10.f);
+  mSun.transform.setlocalTransform(mat44::lookAt(vec3{-10.f ,5.f, -10.f}, vec3::zero).inverse());
+  Debug::drawCone(mSun.transform.position(), mSun.transform.forward(), 2.f, 10.f, 10);
   Debug::drawBasis(mSun.transform.position(), mSun.transform.right(), mSun.transform.up(), mSun.transform.forward());
   mSun.asDirectionalLight(2.f, { 1, 0, 0 });
-  mSun.castShadow = false;
+  mSun.castShadow = true;
 
   mRenderScene = new RenderScene();
 ////  mRenderScene->add(mRship);
@@ -50,8 +50,8 @@ Level::Level() {
   mRenderScene->add(mMap.renderable);
   mRenderScene->add(mPlayer.renderable);
   mRenderScene->add(mSun);
-  mCamera->handlePrePass([this](const Camera& cam) {
-  });
+  //mCamera->handlePrePass([this](const Camera& cam) {
+  //});
   mCamera->transfrom().localTranslate({ 0, .4f, -3.f });
 
   Debug::drawGrid(vec3::zero, vec3::right, vec3::forward, 1.f, 50.f, Debug::INF, Rgba::black);
@@ -86,7 +86,7 @@ void Level::loadResources() {
   //Debug::log("resource is loaded...", Rgba::green, 15.f);
 }
 
-void Level::update(float dsec) {
+void Level::update(float) {
 
 }
 
@@ -136,11 +136,11 @@ void Level::processInput(float dSecond) {
   //mCamera->lookAt(mCamera->transfrom().position(), vec3::zero);
 
   float height = mMap.height(mPlayer.transform.position().xz());
-  mPlayer.transform.localPosition().y = height + .1f;
+  mPlayer.transform.localPosition().y = height + .5f;
   Debug::log(Stringf("player position: %s, height: %.6f", mPlayer.transform.position().xz().toString().c_str(), height), Rgba::white, 0);
 
   Debug::drawBasis(mPlayer.transform.position(), mPlayer.transform.right(), mPlayer.transform.up(), mPlayer.transform.forward(), 0);
-  //Debug::drawPoint(mPlayer.transform.position(), 5.f, Gradient(Rgba::red, Rgba::blue));
+  Debug::drawPoint(mPlayer.transform.position(), 5.f, Gradient(Rgba::red, Rgba::blue));
   if(g_theInput->isKeyJustDown(KEYBOARD_F5)) {
     Resource<Shader>::reload();
   }
