@@ -10,7 +10,7 @@ class Clock;
 
 
 class Mesh;
-
+class OrbitCamera;
 class Level {
 public:
   Level();
@@ -19,17 +19,18 @@ public:
   void update(float dSecond);
   void render() const;
   void processInput(float dSecond);
-
-
+  RenderScene& renderScene() { return *mRenderScene; }
+  static Level& currentLevel();
 protected:
   void updateLight();
 
-  Camera* mCamera;
-  Clock* mGameClock;
-  RenderScene* mRenderScene;
+  OrbitCamera* mCamera = nullptr;
+  Camera* mDebugCamera = nullptr;
+  Clock* mGameClock = nullptr;
+  RenderScene* mRenderScene = nullptr;
+  Player* mPlayer = nullptr;
   Light mSun;
   Map mMap;
-  Player mPlayer;
 };
 
 

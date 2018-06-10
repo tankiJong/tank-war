@@ -19,9 +19,6 @@
     <ClCompile Include="GameCommon.cpp">
       <Filter>General</Filter>
     </ClCompile>
-    <ClCompile Include="Gameplay\Entity.cpp">
-      <Filter>General\Gameplay</Filter>
-    </ClCompile>
     <ClCompile Include="Gameplay\Map.cpp">
       <Filter>General\Gameplay</Filter>
     </ClCompile>
@@ -34,6 +31,18 @@
     <ClCompile Include="Game.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="Gameplay\Turret.cpp">
+      <Filter>General\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="Gameplay\OrbitCamera.cpp">
+      <Filter>General\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="Gameplay\Entity.cpp">
+      <Filter>General\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="Gameplay\Tank.cpp">
+      <Filter>General\Gameplay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp">
@@ -44,9 +53,6 @@
     </ClInclude>
     <ClInclude Include="EngineBuildPreferences.hpp">
       <Filter>General</Filter>
-    </ClInclude>
-    <ClInclude Include="Gameplay\Entity.hpp">
-      <Filter>General\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="Gameplay\Map.hpp">
       <Filter>General\Gameplay</Filter>
@@ -59,6 +65,18 @@
     </ClInclude>
     <ClInclude Include="Game.hpp">
       <Filter>General</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\Turret.hpp">
+      <Filter>General\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\OrbitCamera.hpp">
+      <Filter>General\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\Entity.hpp">
+      <Filter>General\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\Tank.hpp">
+      <Filter>General\Gameplay</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

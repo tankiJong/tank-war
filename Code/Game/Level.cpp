@@ -10,13 +10,23 @@
 #include "Engine/Renderer/ForwardRendering.hpp"
 #include "Engine/Debug/Log.hpp"
 #include "Engine/File/FileSystem.hpp"
+#include "Game/Gameplay/OrbitCamera.hpp"
 
-Level::Level() {
-  mCamera = new Camera();
+Level* gCurrentLevel = nullptr;
+
+Level::Level(): mRenderScene(new RenderScene()), mPlayer() {
+  gCurrentLevel = this;
+  mCamera = new OrbitCamera();
   mCamera->setProjectionPrespective(30.f, 5.f*CLIENT_ASPECT, 5.f, .1f, 100.f);
   mCamera->setColorTarget(g_theRenderer->getDefaultColorTarget());
   mCamera->setDepthStencilTarget(g_theRenderer->getDefaultDepthTarget());
   mCamera->setFlag(CAM_CLEAR_DEPTH | CAM_CLEAR_COLOR | CAM_EFFECT_BLOOM);
+
+  mDebugCamera = new Camera();
+  mDebugCamera->setProjectionPrespective(30.f, 5.f*CLIENT_ASPECT, 5.f, .1f, 100.f);
+  mDebugCamera->setColorTarget(g_theRenderer->getDefaultColorTarget());
+  mDebugCamera->setDepthStencilTarget(g_theRenderer->getDefaultDepthTarget());
+  mDebugCamera->setFlag(CAM_CLEAR_DEPTH | CAM_CLEAR_COLOR | CAM_EFFECT_BLOOM);
   Debug::setCamera(mCamera);
 
   mCamera->transfrom().localRotation() = vec3::zero;
@@ -28,8 +38,9 @@ Level::Level() {
 
   loadResources();
 
-  mPlayer.init();
-  mCamera->transfrom().parent() = &mPlayer.transform;
+  mPlayer = new Player();
+  mPlayer->init();
+  mCamera->attach(mPlayer->transform, 2.f);
   mMap.init();
 
   mSun.transform.setlocalTransform(mat44::lookAt(vec3{-10.f ,5.f, -10.f}, vec3::zero).inverse());
@@ -38,7 +49,6 @@ Level::Level() {
   mSun.asDirectionalLight(2.f, { 1, 0, 0 });
   mSun.castShadow = true;
 
-  mRenderScene = new RenderScene();
 ////  mRenderScene->add(mRship);
 //  mRenderScene->add(mRsphere);
 //  mRenderScene->add(mEmitter->renderable());
@@ -48,7 +58,8 @@ Level::Level() {
 ////  mRenderScene->add(*g_theUiCamera);
   mRenderScene->add(*mCamera);
   mRenderScene->add(mMap.renderable);
-  mRenderScene->add(mPlayer.renderable);
+  // mRenderScene->add(mPlayer->renderable);
+  // mRenderScene->add(mPlayer->turret.renderable);
   mRenderScene->add(mSun);
   //mCamera->handlePrePass([this](const Camera& cam) {
   //});
@@ -61,7 +72,6 @@ Level::Level() {
 Level::~Level() {
   delete mCamera;
   delete mGameClock;
-  delete mRenderScene;
 }
 
 void Level::loadResources() {
@@ -87,7 +97,7 @@ void Level::loadResources() {
 }
 
 void Level::update(float) {
-
+  // mCamera->update();
 }
 
 
@@ -108,43 +118,78 @@ void Level::processInput(float dSecond) {
   if (frameCount++ < 10) return;
   static vec3 position(10.f, 10.f, 10.f);
 
-  vec2 mouseDelta = g_theInput->mouseDeltaPosition(false);
+   vec2 mouseDelta = g_theInput->mouseDeltaPosition(false);
 
-  vec3 d(mouseDelta.y, mouseDelta.x, 0);
+   vec3 d(mouseDelta.y, mouseDelta.x, 0);
 
-  if(d.magnitude() > 0) {
-//    d = d.normalized();
-    d.x *= dSecond * .8f;
-    d.y *= dSecond * .8f;
+   if(d.magnitude() > 0) {
+ //    d = d.normalized();
+     d.x *= dSecond * .8f;
+     d.y *= dSecond * .8f;
+   }
+
+
+   mPlayer->transform.localRotate({d.x, 0, 0});
+
+  if(g_theInput->isKeyDown('Q')) {
+    mPlayer->turret.transform.localRotate({ 0, dSecond * 60.f, 0 });
   }
 
-  mPlayer.transform.localRotate({d.x, d.y, 0});
-  d = vec3::zero;
-  if (g_theInput->isKeyDown('W')) {
-    d += mCamera->forward() * dSecond * 5.f;
+  if (g_theInput->isKeyDown('E')) {
+    mPlayer->turret.transform.localRotate({ 0, dSecond * -60.f, 0 });
   }
-  if (g_theInput->isKeyDown('S')) {
-    d -= mCamera->forward() * dSecond * 5.f;
-  }
-  if (g_theInput->isKeyDown('A')) {
-    d -= mCamera->right() * dSecond * 5.f;
-  }
-  if (g_theInput->isKeyDown('D')) {
-    d += mCamera->right() * dSecond * 5.f;
-  }
-  mPlayer.transform.localTranslate(d);
-  //mCamera->lookAt(mCamera->transfrom().position(), vec3::zero);
 
-  float height = mMap.height(mPlayer.transform.position().xz());
-  mPlayer.transform.localPosition().y = height + .5f;
-  Debug::log(Stringf("player position: %s, height: %.6f", mPlayer.transform.position().xz().toString().c_str(), height), Rgba::white, 0);
+  if(!g_theInput->isKeyDown(KEYBOARD_F1)) {
+    mCamera->processInput(dSecond);
 
-  Debug::drawBasis(mPlayer.transform.position(), mPlayer.transform.right(), mPlayer.transform.up(), mPlayer.transform.forward(), 0);
-  Debug::drawPoint(mPlayer.transform.position(), 5.f, Gradient(Rgba::red, Rgba::blue));
+    d = vec3::zero;
+    if (g_theInput->isKeyDown('W')) {
+      d += mCamera->forward() * dSecond * 5.f;
+    }
+    if (g_theInput->isKeyDown('S')) {
+      d -= mCamera->forward() * dSecond * 5.f;
+    }
+    if (g_theInput->isKeyDown('A')) {
+      mPlayer->transform.localRotate({ 0, 30.f * dSecond, 0 });
+    }
+    if (g_theInput->isKeyDown('D')) {
+      mPlayer->transform.localRotate({ 0, -30.f * dSecond, 0 });
+    }
+
+    mPlayer->transform.localTranslate(d);
+    
+  } else {
+    mDebugCamera->transfrom().localRotate({ d.x, d.y, 0 });
+    d = vec3::zero;
+    if (g_theInput->isKeyDown('W')) {
+      d += mCamera->forward() * dSecond * 5.f;
+    }
+    if (g_theInput->isKeyDown('S')) {
+      d -= mCamera->forward() * dSecond * 5.f;
+    }
+    if (g_theInput->isKeyDown('A')) {
+      d -= mCamera->right() * dSecond * 5.f;
+    }
+    if (g_theInput->isKeyDown('D')) {
+      d += mCamera->right() * dSecond * 5.f;
+    }
+    mDebugCamera->transfrom().localTranslate(d);
+  }
+
+  float height = mMap.height(mPlayer->transform.position().xz());
+  mPlayer->transform.localPosition().y = height;
+  Debug::log(Stringf("player position: %s, height: %.6f", mPlayer->transform.position().xz().toString().c_str(), height), Rgba::white, 0);
+
+  Debug::drawBasis(mPlayer->transform.position(), mPlayer->transform.right(), mPlayer->transform.up(), mPlayer->transform.forward(), 0);
+  // Debug::drawPoint(mPlayer->transform.position(), 5.f, Gradient(Rgba::red, Rgba::blue));
   if(g_theInput->isKeyJustDown(KEYBOARD_F5)) {
     Resource<Shader>::reload();
   }
 
+}
+
+Level& Level::currentLevel() {
+  return *gCurrentLevel;
 }
 
 //Camera* createCamera() {

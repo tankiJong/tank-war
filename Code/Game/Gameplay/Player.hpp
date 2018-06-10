@@ -1,12 +1,11 @@
 ﻿#pragma once
-#include "Engine/Core/common.hpp"
-#include "Engine/Math/Transform.hpp"
-#include "Engine/Renderer/Renderable/Renderable.hpp"
+#include "Game/Gameplay/Turret.hpp"
+#include "Game/Gameplay/Tank.hpp"
 
-class Player {
+class Player: public Tank {
 public:
-  Transform transform;
-  Renderable renderable;
-  void init();
+  void update(float dSecond) override;
+  void onInput(float dSecond) override;
+
   ~Player();
 };
