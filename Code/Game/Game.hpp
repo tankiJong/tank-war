@@ -7,6 +7,8 @@ enum eGameState {
   STATE_MAIN_MENU,
   STATE_READY_UP,
   STATE_LEVEL,
+  STATE_DIE_PAUSE,
+  STATE_WIN,
   NUM_STATES,
 };
 

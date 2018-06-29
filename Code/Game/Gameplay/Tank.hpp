@@ -5,7 +5,13 @@
 
 class Tank : public Entity {
 public:
+  uint teamId;
   Turret turret;
   void init() override;
-  virtual ~Tank();
+  void turn(float degSec);
+  void turnToward(const vec3& target, float speedDeg);
+  void advance(float speedSec);
+  void advance(float speedSec, const vec3 norm);
+  void turnTurret(float degSec);
+  void shoot();
 };

@@ -8,5 +8,5 @@ Input*      g_theInput    = nullptr;
 BitmapFont* g_defaultFont = nullptr;
 Window*     g_theWindow   = nullptr;
 Console*    g_theConsole  = nullptr;
-
+Audio*      g_theAudio    = nullptr;
 Camera*     g_theUiCamera = nullptr;

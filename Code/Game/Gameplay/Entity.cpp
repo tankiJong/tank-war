@@ -11,6 +11,7 @@ Entity::Entity() {
 }
 
 Entity::~Entity() {
+  Level::currentLevel().renderScene().remove(renderable);
   delete renderable.mesh();
   renderable.mesh() = nullptr;
 }

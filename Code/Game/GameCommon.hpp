@@ -7,12 +7,14 @@ class BitmapFont;
 class Window;
 class Console;
 class Camera;
+class Audio;
 extern const    char* APP_NAME;
 extern unsigned char  g_isCheating;
 
 extern bool        g_isQuitting;
 extern Renderer*   g_theRenderer;
 extern Input*      g_theInput;
+extern Audio*      g_theAudio;
 extern Window*     g_theWindow;
 extern BitmapFont* g_defaultFont;
 extern Console*    g_theConsole;

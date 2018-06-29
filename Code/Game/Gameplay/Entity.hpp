@@ -10,6 +10,9 @@ public:
   Entity();
   virtual ~Entity();
   virtual void init() {};
-  virtual void update(float dSecond) {};
-  virtual void onInput(float dSecond) {};
+  virtual void update(float) {};
+  virtual void onInput(float) {};
+  virtual bool isDead() const { return mIsDead; }
+
+  bool mIsDead = false;
 };

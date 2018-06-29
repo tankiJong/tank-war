@@ -1,4 +1,4 @@
-name: material/couch
+name: material/water
 properties:
   cSpecBlock: {             # this is a property block
     [SPECULAR_AMOUNT, float]: 100, # same as defining property
@@ -6,19 +6,25 @@ properties:
   }
 
   # for texture, [0] is texture type, [1] is path/id, [2] is POINT|LINEAR|.. and I don't even need "" for the path string lol
-  gTexDiffuse: [0, /data/Images/couch/couch_diffuse.png, LINEAR]
-  gTexNormal: [1, /data/Images/couch/couch_normal.png, LINEAR]
+  gTexDiffuse: [0, /data/Images/water.jpg, LINEAR]
 shader:
   pass:
   - 
     program: 
-      define: _LIT;_FOG
       path: /$Content/shader/progs/default
-    layer: opaque
-    cull: none
+
+    cull: back
     fill: solid
     frontface: ccw
-    blend: false
+    blend:
+      color:
+        op: add
+        src: src_alpha
+        dest: inv_src_alpha
+      alpha:
+        op: add
+        src: one
+        dest: one
     depth:
       write: true
       test: less

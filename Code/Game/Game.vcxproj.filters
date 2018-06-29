@@ -43,6 +43,18 @@
     <ClCompile Include="Gameplay\Tank.cpp">
       <Filter>General\Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="Gameplay\util.cpp">
+      <Filter>General\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="Gameplay\Enemy.cpp">
+      <Filter>General\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="Gameplay\EnemySpawner.cpp">
+      <Filter>General\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="Gameplay\Bullet.cpp">
+      <Filter>General\Gameplay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp">
@@ -76,6 +88,18 @@
       <Filter>General\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="Gameplay\Tank.hpp">
+      <Filter>General\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\Bullet.hpp">
+      <Filter>General\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\util.hpp">
+      <Filter>General\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\Enemy.hpp">
+      <Filter>General\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\EnemySpawner.hpp">
       <Filter>General\Gameplay</Filter>
     </ClInclude>
   </ItemGroup>

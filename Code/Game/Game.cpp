@@ -12,7 +12,16 @@
 #include "Engine/Renderer/Shader/Shader.hpp"
 #include "Engine/Renderer/Shader/Material.hpp"
 #include "Engine/Renderer/Renderer.hpp"
+#include "Game/Gameplay/Enemy.hpp"
+#include "Engine/Audio/Audio.hpp"
 Transform uiTransform;
+
+
+SoundID gBgm;
+SoundPlaybackID gBgmPlayback;
+SoundID gMenuSelect;
+
+SoundID gMainGameBgm;
 Game::Game() {
   Debug::setRenderer(g_theRenderer);
   Debug::setClock(&GetMainClock());
@@ -23,12 +32,18 @@ Game::Game() {
   mUis[STATE_LOADING].init("loading assets"sv, Rgba::cyan);
   mUis[STATE_MAIN_MENU].init("Hit SPACE to start"sv, Rgba::black);
   mUis[STATE_READY_UP].init("Hit Enter when you are ready"sv, Rgba::green);
+  mUis[STATE_DIE_PAUSE].init("You DIED. Hit SPACE to continue..."sv, Rgba::red);
+  mUis[STATE_WIN].init("You win."sv, Rgba::blue);
 }
 
 void Game::beforeFrame() {
 }
 
-void Game::afterFrame() {}
+void Game::afterFrame() {
+  if(state == STATE_LEVEL) {
+    mLevel->afterFrame();
+  }
+}
 
 void Game::render() const {
   static uint frameCount = 0;
@@ -44,8 +59,12 @@ void Game::render() const {
 void Game::loadResources() const {
   Debug::log("resource is loading...", Rgba::red, 10.f);
 
-  Resource<Texture>::define("/image/couch/couch_diffuse.png");
-  Resource<Texture>::define("/image/couch/couch_normal.png");
+  FileSystem::Get().foreach("/data", [](const fs::path& p, auto...) {
+    if (p.extension() == ".png" || p.extension() == ".jpg") {
+      Resource<Texture>::define(p.generic_string());
+      return;
+    }
+  });
 
 
   FileSystem::Get().foreach("/data", [](const fs::path& p, auto...) {
@@ -60,6 +79,10 @@ void Game::loadResources() const {
       return;
     }
   });
+
+  gBgm = g_theAudio->createOrGetSound("Data/audio/music/mainmenu.mp3");
+  gMainGameBgm = g_theAudio->createOrGetSound("Data/audio/music/world.mp3");
+  gMenuSelect = g_theAudio->createOrGetSound("Data/audio/sfx/menu.select.wav");
   Debug::log("resource is loaded...", Rgba::green, 15.f);
 }
 
@@ -67,15 +90,19 @@ void Game::update(float dSecond) {
   static bool justSwitch = false;
   switch(state) {
     case STATE_LOADING: {
-      if(GetMainClock().total.second > 5.0) {
-        switchState(STATE_MAIN_MENU);
-      }
+      switchState(STATE_MAIN_MENU);
+      gBgmPlayback = g_theAudio->playSound(gBgm);
+
     }; break;
     case STATE_MAIN_MENU: break;
     case STATE_READY_UP: break;
-    case STATE_LEVEL: 
+    case STATE_LEVEL:
       mLevel->update(dSecond);
+      if(mLevel->isPlayerWin()) {
+        switchState(STATE_WIN);
+      }
     break;
+    case STATE_WIN: break;
     default: ;
   }
 }
@@ -85,6 +112,7 @@ void Game::processInput(float dSecond) {
     case STATE_LOADING: break;
     case STATE_MAIN_MENU:
       if(g_theInput->isKeyJustDown(KEYBOARD_SPACE)) {
+        g_theAudio->playSound(gMenuSelect);
         EXPECTS(mLevel == nullptr);
         mLevel = new Level();
         switchState(STATE_READY_UP);
@@ -92,14 +120,35 @@ void Game::processInput(float dSecond) {
     break;
     case STATE_READY_UP: 
       if (g_theInput->isKeyJustDown(KEYBOARD_RETURN)) {
+        g_theAudio->playSound(gMenuSelect);
         switchState(STATE_LEVEL);
+        g_theAudio->stopSound(gBgmPlayback);
+        g_theAudio->playSound(gMainGameBgm);
       }
     break;
     case STATE_LEVEL:
+      if(mLevel->mPlayer->isDead()) {
+        switchState(STATE_DIE_PAUSE);
+      }
       if(mLevel) {
         mLevel->processInput(dSecond);
       }
     break;
+    case STATE_DIE_PAUSE:
+      if(g_theInput->isKeyJustDown(KEYBOARD_SPACE)) {
+        mLevel->mPlayer->recovery();
+        aabb2 box;
+        for(Enemy* enemy: mLevel->mEnemies) {
+          box.stretchToIncludePoint(enemy->transform.position().xz());
+        }
+        box.addPaddingToSides(10.f, 10.f);
+        aabb2 box2 = box;
+        box.mins = clamp(box.mins, vec2::zero, vec2(MapSize.x, MapSize.y));
+        box.maxs = clamp(box.maxs, vec2::zero, vec2(MapSize.x, MapSize.y));
+        vec2 pos = (box2.maxs == box.maxs) ? box2.maxs : box2.mins;
+        mLevel->mPlayer->transform.localPosition() = vec3(pos.x, 0, pos.y);
+        switchState(STATE_LEVEL);
+      }
     default: ;
   }
 }
