@@ -15,6 +15,7 @@
 #include "Engine/Math/Primitives/ray3.hpp"
 #include "Game/Gameplay/Enemy.hpp"
 #include "Game/Gameplay/EnemySpawner.hpp"
+#include "Engine/Debug/Profile/Profiler.hpp"
 Level* gCurrentLevel = nullptr;
 
 template<typename T>
@@ -152,17 +153,18 @@ void Level::loadResources() {
 }
 
 void Level::update(float dsec) {
+  PROF_FUNC();
   mCamera->update();
   mSun.transform.setlocalTransform(
     mat44::lookAt(
       vec3{ -5.f ,10.f, -5.f } + mPlayer->transform.position(), 
-      vec3(10, 0, 10) + mPlayer->transform.position()));
+      vec3(-5.f, 0, -5.f) + mPlayer->transform.position()));
 
   mSun.asDirectionalLight(3.f, vec3(1, 0, 0));
   mSun.transform.setlocalTransform(
     mat44::lookAt(
     vec3{ -5.f ,10.f, -5.f },
-    vec3(10, 0, 10)));
+    vec3(-5.f, 0, -5.f)));
   mMap.update();
   ray3 ray = { mCamera->transfrom().position(), mCamera->transfrom().forward() };
   contact3 c = mMap.raycast(ray);
@@ -170,6 +172,7 @@ void Level::update(float dsec) {
   float distance2 = c.valid() ? mCamera->transfrom().position().distance2(c.position): INFINITY;
 
   for(Enemy* e: mEnemies) {
+    PROF_SCOPE("Game::Raycast")
     contact3 cc = ray.intersect(e->bound());
 
     if (!cc.valid()) continue;
@@ -259,6 +262,7 @@ void Level::update(float dsec) {
 
 
 void Level::render() const {
+  PROF_FUNC();
   static ForwardRendering fw(g_theRenderer);
   g_theRenderer->setAmbient({ 1,1,1, 0.f });
 
@@ -269,11 +273,11 @@ void Level::render() const {
 
 
   mHud.render();
-  Debug::drawNow();
 
 }
 
 void Level::processInput(float dSecond) {
+
   static int frameCount = 0;
 
   if(frameCount++ < 10) return;

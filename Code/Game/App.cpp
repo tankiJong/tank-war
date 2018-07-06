@@ -11,6 +11,8 @@
 #include "Engine/Renderer/Font.hpp"
 #include "Engine/File/FileSystem.hpp"
 #include "Engine/Audio/Audio.hpp"
+#include "Engine/Debug/Profile/Profiler.hpp"
+#include "Engine/Debug/Profile/Overlay.hpp"
 App* g_theApp = nullptr;
 
 App::App() {
@@ -60,10 +62,20 @@ void App::afterFrame() {
 }
 
 void App::beforeFrame() {
+  Profile::markFrame();
   g_theAudio->beforeFrame();
 	g_theInput->beforeFrame();
 	g_theRenderer->beforeFrame();
   GetMainClock().beginFrame();
+
+
+  {
+    PROF_SCOPE("A");
+    {
+      PROF_SCOPE("B")
+    }
+  }
+
   m_game->beforeFrame();
 }
 
@@ -80,8 +92,7 @@ void App::update() {
       m_isQuitting = 1;
       return;
     }
-    
-    g_theInput->mouseLockCursor(true);
+
     if(g_theInput->isKeyJustDown(KEYBOARD_OEM_3)) {
       g_theConsole->open();
       g_theInput->mouseLockCursor(false);
@@ -92,12 +103,20 @@ void App::update() {
     g_theConsole->update(dSecond);
   } 
   m_game->update(dSecond);
+  Profile::updateOverlay();
 
+  // if(g_theInput->isKeyDown(MOUSE_LBUTTON)) {
+  //   Profile::pause();
+  // } else {
+  //   Profile::resume();
+  // }
 }
 
 void App::render() const {
 //  g_theRenderer->cleanScreen(Rgba(0, 0, 0, 255));
   m_game->render();
+  Debug::drawNow();
+  Profile::renderOverlay();
 
   if(g_theConsole->isOpen()) {
     g_theConsole->render();

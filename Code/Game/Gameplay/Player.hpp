@@ -4,7 +4,7 @@
 
 class Player: public Tank {
 public:
-  static constexpr int MAX_HEALTH = 10;
+  static constexpr int MAX_HEALTH = 10000;
   void update(float dSecond) override;
   void onInput(float dSecond) override;
   inline void cutHealth(int h) { currentHealth -= h; }
