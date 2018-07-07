@@ -95,7 +95,6 @@ void App::update() {
 
     if(g_theInput->isKeyJustDown(KEYBOARD_OEM_3)) {
       g_theConsole->open();
-      g_theInput->mouseLockCursor(false);
     }
 
     m_game->processInput(dSecond);
