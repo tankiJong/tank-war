@@ -181,7 +181,7 @@ void Level::update(float dsec) {
     if(newDistance2 <= distance2) {
       distance2 = newDistance2;
       c = cc;
-      Debug::log(Stringf("Hit enemy at: %s", cc.position.toString().c_str()), Rgba::red);
+      Log::log(Stringf("Hit enemy at: %s", cc.position.toString().c_str()), Rgba::red);
     }
   }
 
@@ -194,7 +194,7 @@ void Level::update(float dsec) {
     if (newDistance2 <= distance2) {
       distance2 = newDistance2;
       c = cc;
-      Debug::log(Stringf("Hit Spawner at: %s", cc.position.toString().c_str()), Rgba::red);
+      Log::log(Stringf("Hit Spawner at: %s", cc.position.toString().c_str()), Rgba::red);
 
     }
   }
@@ -288,7 +288,7 @@ void Level::processInput(float dSecond) {
   vec3 d(mouseDelta.y, mouseDelta.x, 0);
 
   d *= 2.f;
-  Debug::log(d.toString());
+  Log::log(d.toString());
   if(d.magnitude() > 0) {
     //    d = d.normalized();
     d.x *= dSecond * 8.f;

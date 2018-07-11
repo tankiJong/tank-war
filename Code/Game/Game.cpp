@@ -4,8 +4,6 @@
 #include "Engine/Renderer/Font.hpp"
 #include "Engine/Application/Window.hpp"
 #include "Engine/Debug/Draw.hpp"
-#include <chrono>
-#include <thread>
 #include "Engine/Debug/Log.hpp"
 #include "Engine/File/FileSystem.hpp"
 #include "Engine/Renderer/ForwardRendering.hpp"
@@ -16,6 +14,7 @@
 #include "Engine/Audio/Audio.hpp"
 #include "Engine/Debug/Profile/Profiler.hpp"
 #include "Engine/Debug/Profile/Overlay.hpp"
+#include "Engine/Async/Thread.hpp"
 Transform uiTransform;
 
 
@@ -61,11 +60,13 @@ void Game::render() const {
     mUis[state].render();
   }
 
+  if (g_theInput->isKeyJustDown('0')) {
+    g_theRenderer->screenShot("screenshot.bmp");
+  }
+
 }
 
 void Game::loadResources() const {
-  Debug::log("resource is loading...", Rgba::red, 10.f);
-
   FileSystem::Get().foreach("/data", [](const fs::path& p, auto...) {
     if (p.extension() == ".png" || p.extension() == ".jpg") {
       Resource<Texture>::define(p.generic_string());
@@ -90,7 +91,6 @@ void Game::loadResources() const {
   gBgm = g_theAudio->createOrGetSound("Data/audio/music/mainmenu.mp3");
   gMainGameBgm = g_theAudio->createOrGetSound("Data/audio/music/world.mp3");
   gMenuSelect = g_theAudio->createOrGetSound("Data/audio/sfx/menu.select.wav");
-  Debug::log("resource is loaded...", Rgba::green, 15.f);
 }
 
 void Game::update(float dSecond) {
