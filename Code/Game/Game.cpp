@@ -41,10 +41,10 @@ Game::Game() {
 }
 
 void Game::beforeFrame() {
-  Log::tagf("AAA", "i am log from tag AAA");
-  Log::tagf("BBB", "i am log from tag BBB");
-  Log::tagf("CCC", "i am log from tag CCC");
-  Log::tagf("DDD", "i am log from tag DDD");
+  // Log::tagf("AAA", "i am log from tag AAA");
+  // Log::tagf("BBB", "i am log from tag BBB");
+  // Log::tagf("CCC", "i am log from tag CCC");
+  // Log::tagf("DDD", "i am log from tag DDD");
 }
 
 void Game::afterFrame() {
