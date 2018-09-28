@@ -18,12 +18,13 @@
 #include "Engine/Net/NetAddress.hpp"
 #include "Engine/Net/UDPSocket.hpp"
 #include "Engine/Debug/Console/Command.hpp"
+#include "Engine/Net/UDPSession.hpp"
 
 // class test
-#define GAME_PORT 10084
+#define GAME_PORT 10085u
 #define ETHERNET_MTU 1500  // maximum transmission unit - determined by hardware part of OSI model.
 // 1500 is the MTU of EthernetV2, and is the minimum one - so we use it; 
-#define PACKET_MTU (ETHERNET_MTU - 40 - 8) 
+#define NET_PACKET_MTU (ETHERNET_MTU - 40 - 8) 
 
 // IPv4 Header Size: 20B
 // IPv6 Header Size: 40B
@@ -32,62 +33,7 @@
 // Ethernet: 28B, but MTU is already adjusted for it
 // so packet size is 1500 - 40 - 8 => 1452B (why?)
 
-class UDPTest {
-public:
 
-  bool start() {
-    // get an address to use; 
-    NetAddress addr = "10.8.147.162:10084";
-
-    if (!m_socket.bind(addr, 10)) {
-      Console::error("Failed to bind.");
-      return false;
-    } else {
-      m_socket.setOption(~SOCKET_OPTION_BLOCKING); // if you have cached options, you could do this
-                                    // in the constructor; 
-      Console::info(Stringf("Socket bound: %s", m_socket.address().toString()));
-      ENSURES(m_socket.valid());
-      return true;
-    }
-  }
-
-  void stop() {
-    m_socket.close();
-  }
-
-  void send_to(NetAddress const &addr, void const *buffer, uint byte_count) {
-    m_socket.send(addr, buffer, byte_count);
-  }
-
-  void update() {
-    byte_t buffer[PACKET_MTU];
-
-    NetAddress from_addr;
-    size_t read = m_socket.receive(from_addr, buffer, PACKET_MTU);
-
-    if (read > 0U) {
-      uint max_bytes = std::min<uint>(read, 128u);
-      std::string output = "0x";
-      output.resize(max_bytes * 2U + 3U, 0);
-      char* iter = output.data();
-
-      iter += 2U; // skip the 0x
-      for (uint i = 0; i < read; ++i) {
-        sprintf_s(iter, max_bytes * 2U + 3U, "%02X", buffer[i]);
-        iter += 2U;
-      }
-      *iter = NULL;
-
-      Console::info(Stringf("Received from %s;\n%s", from_addr.toString(),
-                    output.c_str()));
-    }
-  }
-
-public:
-  // if you have multiple address, you can use multiple sockets
-  // but you have to be clear on which one you're sending from; 
-  UDPSocket m_socket;
-};
 
 
 
@@ -103,7 +49,50 @@ SoundID gMenuSelect;
 SoundID gMainGameBgm;
 
 
-UDPTest* udpTest = nullptr;
+UDPSession* session;
+COMMAND_REG("send_ping", "idx: uint8_t, msg:string", "send a ping to the connection")(Command& cmd) {
+  uint idx = cmd.arg<0, uint>();
+
+  std::string message = cmd.arg<1>();
+
+  NetMessage msg("ping");
+  msg.write(message.c_str());
+
+  session->send(idx, msg);
+
+  return true;
+};
+
+COMMAND_REG("send_add", "idx: uint8_t, a: float, b: float", "send a ping to the connection")(Command& cmd) {
+  uint idx = cmd.arg<0, uint>();
+  float a = cmd.arg<1, float>();
+  float b = cmd.arg<2, float>();
+
+  NetMessage msg("add");
+  a >> msg;
+  b >> msg;
+
+  session->send(idx, msg);
+  return true;
+};
+
+
+
+COMMAND_REG("add_connection", "idx: index, address: string", "add a connection")(Command& cmd) {
+  uint index = cmd.arg<0, uint>();
+
+  std::string address = cmd.arg<1>();
+
+  session->connect(index, NetAddress(address));
+  return true;
+}
+
+COMMAND_REG("test_session", "", "test")(Command& cmd) {
+  Console::Get()->exec("send_ping 1 hello");
+  Console::Get()->exec("send_add 1 1 2");
+  return true;
+}
+
 Game::Game() {
   Debug::setRenderer(g_theRenderer);
   Debug::setClock(&GetMainClock());
@@ -118,9 +107,38 @@ Game::Game() {
   mUis[STATE_WIN].init("You win."sv, Rgba::blue);
 
   g_theInput->mouseLockCursor(true);
+  session = new UDPSession();
+  session->bind(GAME_PORT);
 
-  SAFE_DELETE(udpTest);
-  udpTest = new UDPTest();
+  session->on("ping", [](NetMessage msg, UDPSession::Sender& sender) {
+
+    char buf[1000];
+
+    msg.read(buf, 1000);
+
+    Log::logf("%s", buf);
+    return true;
+  });
+
+  session->on("pong", [](NetMessage msg, UDPSession::Sender& sender) {
+    Log::logf("Pong");
+    return true;
+  });
+
+  session->on("add", [](NetMessage msg, UDPSession::Sender& sender) {
+    float a, b;
+
+
+    msg >> a >> b;
+
+    Log::logf(" %f + %f = %f", a, b, a + b);
+    return true;
+  });
+
+  session->on("add_response", [](NetMessage msg, UDPSession::Sender& sender) {
+    Log::logf("Receive add response");
+    return true;
+  });
 }
 
 void Game::beforeFrame() {
@@ -183,7 +201,6 @@ void Game::loadResources() const {
 void Game::update(float dSecond) {
   static bool justSwitch = false;
 
-  udpTest->update();
   switch(state) {
     case STATE_LOADING: {
       switchState(STATE_MAIN_MENU);
@@ -201,6 +218,10 @@ void Game::update(float dSecond) {
     case STATE_WIN: break;
     default: ;
   }
+
+  session->in();
+
+  session->out();
 
 }
 
@@ -270,30 +291,3 @@ void SceenWord::init(std::string_view txt, const Rgba& color) {
   };
 }
 
-
-
-COMMAND_REG("udp_test_start", "", "start udp test")(Command& cmd) {
-  udpTest->start();
-  return true;
-}
-
-COMMAND_REG("udp_test_stop", "", "stop udp test")(Command& cmd) {
-  udpTest->stop();
-
-  return true;
-}
-
-COMMAND_REG("udp_test_send", "addr str", "Send a message")(Command& cmd) {
-
-  std::string str = cmd.arg<0>();
-
-  NetAddress addr = str;
-
-  std::string content = cmd.arg<1>();
-
-  Console::info("Sending message...");
-
-  udpTest->send_to(addr, content.c_str(), content.size());
-
-  return true;
-}
